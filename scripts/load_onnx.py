@@ -2,12 +2,12 @@ import onnxruntime
 import torch
 
 providers = [
-    ('TensorrtExecutionProvider', {
-        'device_id': 0,
-        'trt_max_workspace_size': 8 * 1024 * 1024 * 1024,
-        'trt_fp16_enable': True,
-        'trt_engine_cache_enable': True,
-    }),
+    # ('TensorrtExecutionProvider', {
+    #     'device_id': 0,
+    #     'trt_max_workspace_size': 8 * 1024 * 1024 * 1024,
+    #     'trt_fp16_enable': True,
+    #     'trt_engine_cache_enable': True,
+    # }),
     ('CUDAExecutionProvider', {
         'device_id': 0,
         'arena_extend_strategy': 'kSameAsRequested',
@@ -35,13 +35,13 @@ def load_onnx_caller(file_path: str, single_output=False):
             assert all([arg.dtype == torch_input_dtype for arg in args]), "All inputs should have same dtype, if first input is torch.Tensor"
             assert all([arg.device == torch_input_device for arg in args]), "All inputs should have same device, if first input is torch.Tensor"
             args = [arg.cpu().float().numpy() for arg in args]
-        
+
         ort_inputs = {ort_session.get_inputs()[idx].name: args[idx] for idx in range(len(args))}
         ort_outs = ort_session.run(None, ort_inputs)
-        
+
         if torch_input:
             ort_outs = [torch.tensor(ort_out, dtype=torch_input_dtype, device=torch_input_device) for ort_out in ort_outs]
-        
+
         if single_output:
             return ort_outs[0]
         return ort_outs
